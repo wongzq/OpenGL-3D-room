@@ -4,7 +4,6 @@ layout (location = 1) in vec3 aNormal;	// the position variable has attribute po
 layout (location = 2) in vec3 bPos;		// the position variable has attribute position 2
 layout (location = 3) in vec3 bNormal;	// the position variable has attribute position 3
 
-
 out vec3 vNormal;	//normal vector for the vertices 
 out vec3 vPos;		//vertex position for light calculation
 
