@@ -31,10 +31,18 @@ glm::mat4 proj;
 // camera
 GLfloat camX = 0.0;
 GLfloat camY = 3.0;
-Glfloat camZ = 10.0;
+GLfloat camZ = 10.0;
 GLfloat dirX = 0.0;
 GLfloat dirY = 0.0;
 GLfloat dirZ = 0.0;
+
+// point light source
+glm::vec3 lightPos = { 10.0, 10.0, 5.0 };
+glm::vec3 lightColor = { 1.0, 1.0, 1.0 };
+glm::vec3 ambient = { 0.33, 0.33, 0.33 };
+
+int choice = 0;
+int object;
 
 // function to load shaders
 GLuint loadShaders(const std::string vShaderFile, const std::string fShaderFile) {
@@ -174,6 +182,75 @@ void init(void) {
 	glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
 
 	// pass light color to fragment shader for light calculation
+	unsigned int lightColorLoc = glGetUniformLocation(program, "lightColor");
+	glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
 
 	// pass ambient light value to fragment shader for light calculation
+	unsigned int ambientLoc = glGetUniformLocation(program, "ambient");
+	glUniform3fv(ambientLoc, 1, glm::value_ptr(ambient));
+}
+
+void drawRoom(float x, float z) {
+	float r, g, b;
+
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	object = 2;
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, 0.0, z));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.5, 0.25, 0.25)));
+	glutSolidCylinder(0.1, 0.5, 50, 50);
+
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, 1.5, z));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.1, 0.1, 0.5)));
+	glutSolidCone(1.2, 1.0, 50, 50);
+
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, 0.375, z + 0.75));
+	model = glm::scale(model, glm::vec3(1.0, 1.5, 1.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.8, 0.1, 0.1)));
+	glutSolidCube(0.5);
+}
+
+void drawShelf(float x, float z) {
+	float r, g, b;
+}
+
+void display(void) {
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
+
+	unsigned int choiceLoc = glGetUniformLocation(program, "choice");
+	glUniform1i(choiceLoc, choice);
+
+	view = glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(dirX, dirY, dirZ), glm::vec3(0.0, 1.0, 0.0));
+	unsigned int viewLoc = glGetUniformLocation(program, "view");
+	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
+
+	unsigned int viewPosLoc = glGetUniformLocation(program, "viewPos");
+	glUniform3fv(viewPosLoc, 1, glm::value_ptr(glm::vec3(camX, camY, camZ)));
+
+	drawRoom(-1.0, 1.0);
+	glutSwapBuffers();
+}
+
+void main(int argc, char** argv) {
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+
+	glutInitWindowSize(600, 600);
+	glutInitWindowPosition(50, 50);
+	glutCreateWindow("Light");
+	glewInit();
+	init();
+	
+	glutDisplayFunc(display);
+	glutIdleFunc(display);
+	glutMainLoop();
 }
