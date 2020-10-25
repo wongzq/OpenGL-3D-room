@@ -194,22 +194,39 @@ void init(void) {
 	glUniform3fv(ambientLoc, 1, glm::value_ptr(ambient));
 }
 
-void drawWall(float x, float y, float z, float yRotate) {
+void drawGround() {
+	// Set buffer to use to draw the floor
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+
+	object = Object::FLOOR;
+
+	glUniform1i(objLoc, object);
+
+	// Set drawing color
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.7, 0.7, 0.7)));
+
+	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glDrawArrays(GL_QUADS, 0, 4);
+}
+
+void drawWall(float x, float z, float yRotate) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
-
-	object = Object::ITEM;
+	
 	double width = 20.0;
 	double height = 10.0;
 	double depth = 0.5;
 
+	object = Object::ITEM;
+
 	glUniform1i(objLoc, object);
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y + height / 2.0, z - depth / 2.0));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, height / 2.0, z - depth / 2.0));
 	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
 	model = glm::scale(model, glm::vec3(width, height, depth));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1.0, 0.5, 0.5)));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.9, 0.9, 1.0)));
 	glutSolidCube(1.0);
 }
 
@@ -265,27 +282,11 @@ void drawTree(float x, float z) {
 	glutSolidSphere(0.5, 50, 50);
 }
 
-void drawGround() {
-	// Set buffer to use to draw the floor
-	unsigned int objLoc = glGetUniformLocation(program, "obj");
-
-	object = Object::FLOOR;
-
-	glUniform1i(objLoc, object);
-
-	// Set drawing color
-	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.8, 0.8, 0.8)));
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_QUADS, 0, 4);
-}
-
 void display(void) {
-	glClear(GL_COLOR_BUFFER_BIT);		// clear screen
-	glClear(GL_DEPTH_BUFFER_BIT);		// clear depth buffer
+	glClear(GL_COLOR_BUFFER_BIT);
+	glClear(GL_DEPTH_BUFFER_BIT);
 
-										//Tell the shader what "choice" the user select
+	//Tell the shader what "choice" the user select
 	unsigned int choiceLoc = glGetUniformLocation(program, "choice");
 	glUniform1i(choiceLoc, choice);
 
@@ -298,17 +299,10 @@ void display(void) {
 	unsigned int viewPosLoc = glGetUniformLocation(program, "viewPos");
 	glUniform3fv(viewPosLoc, 1, glm::value_ptr(glm::vec3(camX, camY, camZ)));
 
-	//drawHouse(-1.0, 1.0);
-	//drawHouse(1.0, -5.0);
-	//drawTree(2.0, 2.0);
-	//drawTree(3.5, 0.0);
-	//drawTree(-4.0, -8.0);
-
 	drawGround();
-	drawWall(-10, 0, 10, 90.0f);
-	drawWall(+10, 0, 10, 90.0f);
-	drawWall(0, 0, 0, 0);
-	//drawCeiling();
+	drawWall(-10, 10, 90.0f);	// left wall
+	drawWall(+10, 10, 90.0f);	// right wall
+	drawWall(0, 0, 0);			// back wall
 
 	glutSwapBuffers();
 }
