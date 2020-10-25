@@ -1,14 +1,10 @@
-// This example demonstrate Light using Phong illumination model
-// Phong illumination model assume 
-//         Total Light = ambient light + diffuse light + specular light 
-
 #include <gl/glew.h>
 #include <gl/freeglut.h>
-// GLM library - for matrix manipulation
+
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-// Copy the GLM folder to the "include" folder of Visual C++
+
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -16,155 +12,124 @@
 #pragma warning(disable:4996)
 using namespace std;
 
-GLuint VBO;		// ID for vertex buffer objects
-GLuint VAO;			// ID for vertex array objects
+GLuint VBO;
+GLuint VAO;
 GLuint program;
 
 GLfloat ground[] = {
-	//vertices
-	//coordinates			normal vector
+	// coordinates			normal vector
 	-50.0, 0.0, -50.0,		0.0, 1.0, 0.0,
-	-50.0, 0.0, 50.0,		0.0, 1.0, 0.0,
-	50.0, 0.0, 50.0,		0.0, 1.0, 0.0,
-	50.0, 0.0, -50.0,		0.0, 1.0, 0.0
+	-50.0, 0.0,  50.0,		0.0, 1.0, 0.0,
+	 50.0, 0.0,  50.0,		0.0, 1.0, 0.0,
+	 50.0, 0.0, -50.0,		0.0, 1.0, 0.0
 };
 
 //predefined matrix type from GLM 
-glm::mat4 model;		//model matrix
-glm::mat4 view;			//view matrix
-glm::mat4 proj;			//projection matrix -- camera settings
+glm::mat4 model;	// model matrix
+glm::mat4 view;		// view matrix
+glm::mat4 proj;		// projection matrix -- camera settings
 
-						//Camera position
+// Camera position
 GLfloat camX = 0.0;
 GLfloat camY = 3.0;
-GLfloat camZ = 10.0;
-//Camera facing direction
+GLfloat camZ = 50.0;
+// Camera facing direction
 GLfloat dirX = 0.0;
 GLfloat dirY = 0.0;
 GLfloat dirZ = 0.0;
 
-//Point Light Source
-glm::vec3 lightPos = { 10.0, 10.0, 5.0 };		//Light position in world coordinate
-glm::vec3 lightColor = { 1.0, 1.0, 1.0 };		//white light
-glm::vec3 ambient = { 0.33, 0.33, 0.33 };		//fixed ambient light
+// Point Light Source
+glm::vec3 lightPos = { 10.0, 10.0, 5.0 };	// Light position in world coordinate
+glm::vec3 lightColor = { 1.0, 1.0, 1.0 };	// white light
+glm::vec3 ambient = { 0.33, 0.33, 0.33 };	// fixed ambient light
 
 int choice = 0;
+enum Object { NONE, FLOOR, ITEM };
 int object;
 
 // function to load shaders
-GLuint loadShaders(const string vertexShaderFile, const string fragmentShaderFile)
-{
-	GLint status;	// for checking compile and linking status
+GLuint loadShaders(const std::string vShaderFile, const std::string fShaderFile) {
+	GLint status;	// to check compile and linking status
 
-					// load vertex shader code from file
-	string vertexShaderCode;	// to store shader code
-	ifstream vertexShaderStream(vertexShaderFile, ios::in);	// open file stream
-
-															// check whether file stream was successfully opened
-	if (vertexShaderStream.is_open())
-	{
+	// VERTEX SHADER
+	// load vertex shader code from file
+	std::string vShaderCodeStr;
+	std::ifstream vShaderStream(vShaderFile, std::ios::in);
+	if (vShaderStream.is_open()) {
 		// read from stream line by line and append it to shader code
-		string line = "";
-		while (getline(vertexShaderStream, line))
-			vertexShaderCode += line + "\n";
-
-		vertexShaderStream.close();		// no longer need file stream
+		std::string line = "";
+		while (std::getline(vShaderStream, line))
+			vShaderCodeStr += line + "\n";
+		vShaderStream.close();
 	}
-	else
-	{
+	else {
 		// output error message and exit
-		cout << "Failed to open vertex shader file - " << vertexShaderFile << endl;
+		std::cout << "Failed to open vertex shader file - " << vShaderFile << std::endl;
 		exit(EXIT_FAILURE);
 	}
 
+	// FRAGMENT SHADER
 	// load fragment shader code from file
-	string fragmentShaderCode;	// to store shader code
-	ifstream fragmentShaderStream(fragmentShaderFile, ios::in);	// open file stream
-
-																// check whether file stream was successfully opened
-	if (fragmentShaderStream.is_open())
-	{
+	std::string fShaderCodeStr;
+	std::ifstream fShaderStream(fShaderFile, std::ios::in);
+	if (fShaderStream.is_open()) {
 		// read from stream line by line and append it to shader code
-		string line = "";
-		while (getline(fragmentShaderStream, line))
-			fragmentShaderCode += line + "\n";
-
-		fragmentShaderStream.close();	// no longer need file stream
+		std::string line = "";
+		while (std::getline(fShaderStream, line))
+			fShaderCodeStr += line + "\n";
+		fShaderStream.close();
 	}
-	else
-	{
+	else {
 		// output error message and exit
-		cout << "Failed to open fragment shader file - " << fragmentShaderFile << endl;
+		std::cout << "Failed to open fragment shader file - " << fShaderFile << std::endl;
 		exit(EXIT_FAILURE);
 	}
-
-	// create shader objects
-	GLuint vertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-	GLuint fragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-	// provide source code for shaders
-	const GLchar* vShaderCode = vertexShaderCode.c_str();
-	const GLchar* fShaderCode = fragmentShaderCode.c_str();
-	glShaderSource(vertexShaderID, 1, &vShaderCode, NULL);
-	glShaderSource(fragmentShaderID, 1, &fShaderCode, NULL);
 
 	// compile vertex shader
-	glCompileShader(vertexShaderID);
+	GLuint vShaderID = glCreateShader(GL_VERTEX_SHADER);
+	const GLchar* vShaderCode = vShaderCodeStr.c_str();
+	glShaderSource(vShaderID, 1, &vShaderCode, NULL);
 
-	// check compile status
 	status = GL_FALSE;
-	glGetShaderiv(vertexShaderID, GL_COMPILE_STATUS, &status);
+	glCompileShader(vShaderID);
+	glGetShaderiv(vShaderID, GL_COMPILE_STATUS, &status);
 
-	if (status == GL_FALSE)
-	{
-		// output error message
-		cout << "Failed to compile vertex shader - " << vertexShaderFile << endl;
-
-		// output error information
+	if (status == GL_FALSE) {
+		std::cout << "Failed to compile vertex shader - " << vShaderFile << std::endl;
 		int infoLogLength;
-		glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-		char* errorMessage = new char[(long long)(infoLogLength) + 1];
-		glGetShaderInfoLog(vertexShaderID, infoLogLength, NULL, errorMessage);
-		cout << errorMessage << endl;
-		delete[] errorMessage;
-
+		glGetShaderiv(vShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		char* errorMsg = new char[static_cast<__int64>(infoLogLength) + 1];
+		glGetShaderInfoLog(vShaderID, infoLogLength, NULL, errorMsg);
+		std::cout << errorMsg << std::endl;
+		delete[] errorMsg;
 		exit(EXIT_FAILURE);
 	}
 
 	// compile fragment shader
-	glCompileShader(fragmentShaderID);
+	GLuint fShaderID = glCreateShader(GL_FRAGMENT_SHADER);
+	const GLchar* fShaderCode = fShaderCodeStr.c_str();
+	glShaderSource(fShaderID, 1, &fShaderCode, NULL);
 
-	// check compile status
 	status = GL_FALSE;
-	glGetShaderiv(fragmentShaderID, GL_COMPILE_STATUS, &status);
+	glCompileShader(fShaderID);
+	glGetShaderiv(fShaderID, GL_COMPILE_STATUS, &status);
 
-	if (status == GL_FALSE)
-	{
-		// output error message
-		cout << "Failed to compile fragment shader - " << fragmentShaderFile << endl;
-
-		// output error information
+	if (status == GL_FALSE) {
+		std::cout << "Failed to compile fragment shader - " << fShaderFile << std::endl;
 		int infoLogLength;
-		glGetShaderiv(fragmentShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
-		char* errorMessage = new char[(long long)infoLogLength + 1];
-		glGetShaderInfoLog(fragmentShaderID, infoLogLength, NULL, errorMessage);
-		cout << errorMessage << endl;
-		delete[] errorMessage;
-
+		glGetShaderiv(fShaderID, GL_INFO_LOG_LENGTH, &infoLogLength);
+		char* errorMsg = new char[static_cast<__int64>(infoLogLength) + 1];
+		glGetShaderInfoLog(fShaderID, infoLogLength, NULL, errorMsg);
+		std::cout << errorMsg << std::endl;
+		delete[] errorMsg;
 		exit(EXIT_FAILURE);
 	}
 
 	// create program
 	GLuint programID = glCreateProgram();
-
-	// attach shaders to the program object
-	glAttachShader(programID, vertexShaderID);
-	glAttachShader(programID, fragmentShaderID);
-
-	// flag shaders for deletion (will not be deleted until detached from program)
-	glDeleteShader(vertexShaderID);
-	glDeleteShader(fragmentShaderID);
-
+	// attach shaders to program object
+	glAttachShader(programID, vShaderID);
+	glAttachShader(programID, fShaderID);
 	// link program object
 	glLinkProgram(programID);
 
@@ -172,27 +137,21 @@ GLuint loadShaders(const string vertexShaderFile, const string fragmentShaderFil
 	status = GL_FALSE;
 	glGetProgramiv(programID, GL_LINK_STATUS, &status);
 
-	if (status == GL_FALSE)
-	{
-		// output error message
-		cout << "Failed to link program object." << endl;
-
-		// output error information
+	if (status == GL_FALSE) {
+		std::cout << "Failed to link program object." << std::endl;
 		int infoLogLength;
 		glGetShaderiv(programID, GL_INFO_LOG_LENGTH, &infoLogLength);
-		char* errorMessage = new char[(long long)infoLogLength + 1];
-		glGetShaderInfoLog(programID, infoLogLength, NULL, errorMessage);
-		cout << errorMessage << endl;
-		delete[] errorMessage;
-
+		char* errorMsg = new char[static_cast<__int64>(infoLogLength) + 1];
+		glGetShaderInfoLog(programID, infoLogLength, NULL, errorMsg);
+		std::cout << errorMsg << std::endl;
+		delete[] errorMsg;
 		exit(EXIT_FAILURE);
 	}
 
 	return programID;
 }
 
-void init(void)
-{
+void init(void) {
 	glGenVertexArrays(1, &VAO);
 	glBindVertexArray(VAO);
 
@@ -204,7 +163,6 @@ void init(void)
 
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
-
 	// for GLUT built-in objects
 	glutSetVertexAttribCoord3(2);
 	glutSetVertexAttribNormal(3);
@@ -223,27 +181,47 @@ void init(void)
 	unsigned int projLoc = glGetUniformLocation(program, "proj");
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
-	//Pass light position vector to fragment shader for light calculation
+	// Pass light position vector to fragment shader for light calculation
 	unsigned int lightPosLoc = glGetUniformLocation(program, "lightPos");
 	glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
 
-	//Pass light color to fragment shader for light calculation
+	// Pass light color to fragment shader for light calculation
 	unsigned int lightColorLoc = glGetUniformLocation(program, "lightColor");
 	glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
 
-	//Pass ambient light value to fragment shader for light calculation
+	// Pass ambient light value to fragment shader for light calculation
 	unsigned int ambientLoc = glGetUniformLocation(program, "ambient");
 	glUniform3fv(ambientLoc, 1, glm::value_ptr(ambient));
 }
 
-void drawHouse(float x, float z)
-{
+void drawWall(float x, float y, float z, float yRotate) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	object = Object::ITEM;
+	double width = 20.0;
+	double height = 10.0;
+	double depth = 0.5;
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y + height / 2.0, z - depth / 2.0));
+	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::scale(model, glm::vec3(width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1.0, 0.5, 0.5)));
+	glutSolidCube(1.0);
+}
+
+void drawHouse(float x, float z) {
 	//float red, green, blue;
 
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
-	object = 2;
+
+	object = Object::ITEM;
+
 	glUniform1i(objLoc, object);
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, 0.0, z));
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
@@ -262,17 +240,17 @@ void drawHouse(float x, float z)
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.8, 0.1, 0.1)));
 	glutSolidCube(0.5);
-
 }
 
-void drawTree(float x, float z)
-{
+void drawTree(float x, float z) {
 	//float red, green, blue;
 
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
-	object = 2;
+
+	object = Object::ITEM;
+
 	glUniform1i(objLoc, object);
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, 0.0, z));
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
@@ -287,11 +265,12 @@ void drawTree(float x, float z)
 	glutSolidSphere(0.5, 50, 50);
 }
 
-void drawGround()
-{
+void drawGround() {
 	// Set buffer to use to draw the floor
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
-	object = 1;
+
+	object = Object::FLOOR;
+
 	glUniform1i(objLoc, object);
 
 	// Set drawing color
@@ -302,8 +281,7 @@ void drawGround()
 	glDrawArrays(GL_QUADS, 0, 4);
 }
 
-void display(void)
-{
+void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);		// clear screen
 	glClear(GL_DEPTH_BUFFER_BIT);		// clear depth buffer
 
@@ -316,63 +294,71 @@ void display(void)
 	unsigned int viewLoc = glGetUniformLocation(program, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
-	//Pass camera position to fragment shader for light calculation
+	// Pass camera position to fragment shader for light calculation
 	unsigned int viewPosLoc = glGetUniformLocation(program, "viewPos");
 	glUniform3fv(viewPosLoc, 1, glm::value_ptr(glm::vec3(camX, camY, camZ)));
 
-	drawHouse(-1.0, 1.0);
-	drawHouse(1.0, -5.0);
-	drawTree(2.0, 2.0);
-	drawTree(3.5, 0.0);
-	drawTree(-4.0, -8.0);
+	//drawHouse(-1.0, 1.0);
+	//drawHouse(1.0, -5.0);
+	//drawTree(2.0, 2.0);
+	//drawTree(3.5, 0.0);
+	//drawTree(-4.0, -8.0);
+
 	drawGround();
+	drawWall(-10, 0, 10, 90.0f);
+	drawWall(+10, 0, 10, 90.0f);
+	drawWall(0, 0, 0, 0);
+	//drawCeiling();
+
 	glutSwapBuffers();
 }
 
-void speckey(int theKey, int mouseX, int mouseY)
-{
+void speckey(int theKey, int mouseX, int mouseY) {
 	//Change camera position and make sure camera always "look" to the front
+	GLfloat limit = 100.0;
+	GLfloat move = 0.25;
+
 	switch (theKey)
 	{
 	case GLUT_KEY_LEFT:
-		if (camX > -20.0) {
-			camX -= (GLfloat)0.1;
-			dirX -= (GLfloat)0.1;
+		if (camX > -limit) {
+			camX -= move;
+			dirX -= move;
 		}
 		break;
 
 	case GLUT_KEY_RIGHT:
-		if (camX < 20.0) {
-			camX += (GLfloat)0.1;
-			dirX += (GLfloat)0.1;
+		if (camX < limit) {
+			camX += move;
+			dirX += move;
 		}
 		break;
 
 	case GLUT_KEY_UP:
-		if (camZ > -10.0) {
-			camZ -= (GLfloat)0.1;
-			dirZ -= (GLfloat)0.1;
+		if (camZ > -limit) {
+			camZ -= move;
+			dirZ -= move;
 		}
 		break;
 
 	case GLUT_KEY_DOWN:
-		if (camZ < 15.0) {
-			camZ += (GLfloat)0.1;
-			dirZ += (GLfloat)0.1;
+		if (camZ < limit) {
+			camZ += move;
+			dirZ += move;
 		}
 		break;
 
 	case GLUT_KEY_PAGE_UP:
-		if (camY < 10.0) {
-			camY += (GLfloat)0.1;
-			dirY += (GLfloat)0.1;
+		if (camY < limit) {
+			camY += move;
+			dirY += move;
 		}
 		break;
 
 	case GLUT_KEY_PAGE_DOWN:
-		if (camY > 1.0) {
-			camY -= (GLfloat)0.1;
-			dirY -= (GLfloat)0.1;
+		if (camY > -limit) {
+			camY -= move;
+			dirY -= move;
 		}
 		break;
 
@@ -382,13 +368,11 @@ void speckey(int theKey, int mouseX, int mouseY)
 
 }
 
-void processMenu(int option)
-{
+void processMenu(int option) {
 	choice = option;
 }
 
-void mymenu()
-{
+void mymenu() {
 	int sel;
 	sel = glutCreateMenu(processMenu);
 	glutAddMenuEntry("No Light Effect", 0);
@@ -401,8 +385,7 @@ void mymenu()
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);	// set display mode
 																//use RGB Color, double buffering
@@ -416,6 +399,6 @@ int main(int argc, char** argv)
 	glutIdleFunc(display);
 	glutSpecialFunc(speckey);
 	glutMainLoop();									// go into a permenant loop
-	
+
 	return 0;
 }
