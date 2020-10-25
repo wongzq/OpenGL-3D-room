@@ -17,11 +17,11 @@ GLuint VAO;
 GLuint program;
 
 GLfloat ground[] = {
-	// coordinates			// normal vector
+	// coordinates			normal vector
 	-500.0, 0.0,    0.0,	0.0, 1.0, 0.0,
 	-500.0, 0.0, 1000.0,	0.0, 1.0, 0.0,
-	+500.0, 0.0, 1000.0,	0.0, 1.0, 0.0,
-	+500.0, 0.0,    0.0,	0.0, 1.0, 0.0
+	 500.0, 0.0, 1000.0,	0.0, 1.0, 0.0,
+	 500.0, 0.0,    0.0,	0.0, 1.0, 0.0
 };
 
 //predefined matrix type from GLM 
