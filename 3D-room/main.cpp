@@ -50,6 +50,10 @@ int choice = 4;
 enum Key { ALT, UP, DOWN, LEFT, RIGHT, PG_UP, PG_DN, KEYS_LENGTH };
 bool keys[KEYS_LENGTH] = { false };
 
+// function prototype
+void drawCupboardDoor(float, float);
+void drawCupboardDoor(float, float, float);
+
 // function to load shaders
 GLuint loadShaders(const std::string vShaderFile, const std::string fShaderFile) {
 	GLint status;	// to check compile and linking status
@@ -199,6 +203,7 @@ void init(void) {
 	glUniform3fv(ambientLoc, 1, glm::value_ptr(ambient));
 }
 
+// draw background - ground and walls
 void drawGround() {
 	// Set buffer to use to draw the floor
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
@@ -240,29 +245,7 @@ void drawWall(float x, float z, float yRotate) {
 	glutSolidCube(1.0);
 }
 
-void drawCupboardDoor(float x, float z, float yRotate, int option) {
-	unsigned int objLoc = glGetUniformLocation(program, "obj");
-	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
-	unsigned int modelLoc = glGetUniformLocation(program, "model");
-
-	double width = 125;
-	double height = 450;
-	double depth = 5;
-
-	glm::vec3 brownColor = glm::vec3(0.50, 0.36, 0.22);
-
-	object = Object::ITEM;
-
-	// left board
-	glUniform1i(objLoc, object);
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x + depth / 2, height / 2.0 + 25, z));
-	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
-	model = glm::scale(model, glm::vec3(width, height, depth));
-	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
-	glutSolidCube(1.0);
-}
-
+// draw cupboard
 void drawCupboard(float x, float z) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
@@ -289,8 +272,124 @@ void drawCupboard(float x, float z) {
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
 	glutSolidCube(1.0);
 
-	drawCupboardDoor(finalX + depth / 2.0f, finalZ + width / 4.0f, 90.0f, 0);
-	drawCupboardDoor(finalX + depth / 2.0f, finalZ - width / 4.0f, 90.0f, 1);
+	drawCupboardDoor(finalX + depth / 2.0f, finalZ + width / 4.0f, 90.0f);
+	drawCupboardDoor(finalX + depth / 2.0f, finalZ - width / 4.0f, 90.0f);
+}
+
+void drawCupboardDoor(float x, float z, float yRotate) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	double width = 125;
+	double height = 450;
+	double depth = 5;
+
+	glm::vec3 brownColor = glm::vec3(0.50, 0.36, 0.22);
+
+	object = Object::ITEM;
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x + depth / 2, height / 2.0 + 25, z));
+	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::scale(model, glm::vec3(width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
+	glutSolidCube(1.0);
+}
+
+// draw bed
+void drawBed(float x, float z) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	double width = 250;
+	double height = 100;
+	double depth = 500;
+
+	double pillarRadius = 15;
+
+	glm::vec3 whiteColor = glm::vec3(1.0, 1.0, 1.0);
+	glm::vec3 blanketColor = glm::vec3(0.9, 0.9, 0.9);
+	glm::vec3 brownColor = glm::vec3(0.5, 0.36, 0.22);
+	glm::vec3 lightBrownColor = glm::vec3(0.83, 0.77, 0.63);
+
+	object = Object::ITEM;
+
+	glUniform1i(objLoc, object);
+
+	// bed body
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius, height / 2.0, z));
+	model = glm::scale(model, glm::vec3(width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
+	glutSolidCube(1.0);
+
+	// bed board
+	double width2 = width;
+	double height2 = height * 1.8;
+	double depth2 = 20;
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius, height2 / 2.0, z - depth / 2.0));
+	model = glm::scale(model, glm::vec3(width2, height2, depth2));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
+	glutSolidCube(1.0);
+
+	// pillow
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius - 75, height + 15, z - depth / 2.0 + 50));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(whiteColor));
+	glutSolidSphere(20, 20, 20);
+
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius + 75, height + 15, z - depth / 2.0 + 50));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(whiteColor));
+	glutSolidSphere(20, 20, 20);
+
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius - 75, height + 15, z - depth / 2.0 + 50));
+	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(whiteColor));
+	glutSolidCylinder(20, 150, 20, 20);
+
+	// bed blanket
+	double width3 = width + 10;
+	double height3 = height + 10;
+	double depth3 = depth * 0.7;
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius, height3 / 2.0, z + depth * 0.15 + 10));
+	model = glm::scale(model, glm::vec3(width3, height3, depth3));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(blanketColor));
+	glutSolidCube(1.0);
+
+	// bed pillar top left
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width - pillarRadius, 0, z - depth / 2.0));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
+	glutSolidCylinder(15.0, height * 2.0, 50, 20);
+
+	// bed pillar top right
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - pillarRadius, 0, z - depth / 2.0));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
+	glutSolidCylinder(15.0, height * 2.0, 50, 20);
+
+	// bed pillar bottom left
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width - pillarRadius, 0, z + depth / 2.0));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
+	glutSolidCylinder(15.0, height * 1.25, 50, 20);
+
+	// bed pillar bottom right
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - pillarRadius, 0, z + depth / 2.0));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
+	glutSolidCylinder(pillarRadius, height * 1.25, 50, 20);
 }
 
 void drawHouse(float x, float z) {
@@ -366,6 +465,8 @@ void display(void) {
 	drawWall(0, 0, 0);			// back wall
 
 	drawCupboard(-500, 350);
+
+	drawBed(500, 500);
 
 	glutSwapBuffers();
 }
