@@ -17,11 +17,11 @@ GLuint VAO;
 GLuint program;
 
 GLfloat ground[] = {
-	// coordinates			normal vector
+	// coordinates			// normal vector
 	-500.0, 0.0,    0.0,	0.0, 1.0, 0.0,
 	-500.0, 0.0, 1000.0,	0.0, 1.0, 0.0,
-	 500.0, 0.0, 1000.0,	0.0, 1.0, 0.0,
-	 500.0, 0.0,    0.0,	0.0, 1.0, 0.0
+	+500.0, 0.0, 1000.0,	0.0, 1.0, 0.0,
+	+500.0, 0.0,    0.0,	0.0, 1.0, 0.0
 };
 
 //predefined matrix type from GLM 
@@ -39,13 +39,16 @@ GLfloat dirY = 0.0;
 GLfloat dirZ = 0.0;
 
 // Point Light Source
-glm::vec3 lightPos = { 10.0, 10.0, 5.0 };	// Light position in world coordinate
-glm::vec3 lightColor = { 1.0, 1.0, 1.0 };	// white light
-glm::vec3 ambient = { 0.33, 0.33, 0.33 };	// fixed ambient light
+glm::vec3 lightPos = { 0, 250, 1000 };	// Light position in world coordinate
+glm::vec3 lightColor = { 0.5, 0.5, 0.5 };	// white light
+glm::vec3 ambient = { 0.3, 0.3, 0.3 };	// fixed ambient light
 
 enum Object { NONE, FLOOR, ITEM };
 int object;
-int choice = 0;
+int choice = 4;
+
+enum Key { ALT, UP, DOWN, LEFT, RIGHT, PG_UP, PG_DN, KEYS_LENGTH };
+bool keys[KEYS_LENGTH] = { false };
 
 // function to load shaders
 GLuint loadShaders(const std::string vShaderFile, const std::string fShaderFile) {
@@ -158,9 +161,11 @@ void init(void) {
 	glGenBuffers(1, &VBO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(ground), ground, GL_STATIC_DRAW);
+
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), 0);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
 
+	// for self created objects (floor)
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	// for GLUT built-in objects
@@ -224,11 +229,37 @@ void drawWall(float x, float z, float yRotate) {
 	object = Object::ITEM;
 
 	glUniform1i(objLoc, object);
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, height / 2.0, z - depth / 2.0));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(
+		x + (x == 0 ? 0 : x > 0 ? depth / 2 : -depth / 2),
+		height / 2.0,
+		z - depth / 2.0));
+	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::scale(model, glm::vec3(x == 0 ? width + 2 * depth : width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(color));
+	glutSolidCube(1.0);
+}
+
+void drawCupboardDoor(float x, float z, float yRotate, int option) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	double width = 125;
+	double height = 450;
+	double depth = 5;
+
+	glm::vec3 brownColor = glm::vec3(0.50, 0.36, 0.22);
+
+	object = Object::ITEM;
+
+	// left board
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x + depth / 2, height / 2.0 + 25, z));
 	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
 	model = glm::scale(model, glm::vec3(width, height, depth));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(color));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
 	glutSolidCube(1.0);
 }
 
@@ -237,22 +268,29 @@ void drawCupboard(float x, float z) {
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
 
-	double width = 0;
-	double height = 0;
-	double depth = 0;
+	float width = 300;
+	float height = 500;
+	float depth = 100;
 
 	glm::vec3 brownColor = glm::vec3(0.60, 0.46, 0.32);
 
 	object = Object::ITEM;
 
+	float finalX = x + depth / 2.0f;
+	float finalY = height / 2.0f;
+	float finalZ = z;
+
 	// left board
 	glUniform1i(objLoc, object);
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, height / 2.0, z));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(finalX, finalY, finalZ));
 	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
 	model = glm::scale(model, glm::vec3(width, height, depth));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
 	glutSolidCube(1.0);
+
+	drawCupboardDoor(finalX + depth / 2.0f, finalZ + width / 4.0f, 90.0f, 0);
+	drawCupboardDoor(finalX + depth / 2.0f, finalZ - width / 4.0f, 90.0f, 1);
 }
 
 void drawHouse(float x, float z) {
@@ -327,64 +365,92 @@ void display(void) {
 	drawWall(+500, 500, 90.0f);	// right wall
 	drawWall(0, 0, 0);			// back wall
 
-	drawCupboard(0, 0);
+	drawCupboard(-500, 350);
 
 	glutSwapBuffers();
 }
 
-void speckey(int theKey, int mouseX, int mouseY) {
-	//Change camera position and make sure camera always "look" to the front
-	GLfloat limit = 5000.0;
-	GLfloat move = 10;
-
-	switch (theKey)
-	{
-	case GLUT_KEY_LEFT:
-		if (camX > -limit) {
-			camX -= move;
-			dirX -= move;
-		}
+void speckeyup(int key, int mouseX, int mouseY) {
+	switch (key) {
+	case GLUT_KEY_ALT_L:
+	case GLUT_KEY_ALT_R:
+		keys[Key::ALT] = false;
 		break;
-
-	case GLUT_KEY_RIGHT:
-		if (camX < limit) {
-			camX += move;
-			dirX += move;
-		}
-		break;
-
 	case GLUT_KEY_UP:
-		if (camZ > -limit) {
-			camZ -= move;
-			dirZ -= move;
-		}
+		keys[Key::UP] = false;
 		break;
-
 	case GLUT_KEY_DOWN:
-		if (camZ < limit) {
-			camZ += move;
-			dirZ += move;
-		}
+		keys[Key::DOWN] = false;
 		break;
-
+	case GLUT_KEY_LEFT:
+		keys[Key::LEFT] = false;
+		break;
+	case GLUT_KEY_RIGHT:
+		keys[Key::RIGHT] = false;
+		break;
 	case GLUT_KEY_PAGE_UP:
-		if (camY < limit) {
-			camY += move;
-			dirY += move;
-		}
+		keys[Key::PG_UP] = false;
 		break;
-
 	case GLUT_KEY_PAGE_DOWN:
-		if (camY > -limit) {
-			camY -= move;
-			dirY -= move;
-		}
+		keys[Key::PG_DN] = false;
 		break;
+	}
+}
 
-	default:
+void speckey(int key, int mouseX, int mouseY) {
+	switch (key) {
+	case GLUT_KEY_ALT_L:
+	case GLUT_KEY_ALT_R:
+		keys[Key::ALT] = true;
+		break;
+	case GLUT_KEY_UP:
+		keys[Key::UP] = true;
+		break;
+	case GLUT_KEY_DOWN:
+		keys[Key::DOWN] = true;
+		break;
+	case GLUT_KEY_LEFT:
+		keys[Key::LEFT] = true;
+		break;
+	case GLUT_KEY_RIGHT:
+		keys[Key::RIGHT] = true;
+		break;
+	case GLUT_KEY_PAGE_UP:
+		keys[Key::PG_UP] = true;
+		break;
+	case GLUT_KEY_PAGE_DOWN:
+		keys[Key::PG_DN] = true;
 		break;
 	}
 
+	//Change camera position and make sure camera always "look" to the front
+	GLfloat limit = 5000.0;
+	GLfloat move = 20;
+
+	if (key == GLUT_KEY_LEFT && camX > -limit) {
+		dirX -= keys[Key::ALT] ? 2 * move : move;
+		camX -= keys[Key::ALT] ? 0 : move;
+	}
+	if (key == GLUT_KEY_RIGHT && camX < limit) {
+		dirX += keys[Key::ALT] ? 2 * move : move;
+		camX += keys[Key::ALT] ? 0 : move;
+	}
+	if (key == GLUT_KEY_UP && camY < limit) {
+		dirY += keys[Key::ALT] ? 2 * move : move;
+		camY += keys[Key::ALT] ? 0 : move;
+	}
+	if (key == GLUT_KEY_DOWN && camY > -limit) {
+		dirY -= keys[Key::ALT] ? 2 * move : move;
+		camY -= keys[Key::ALT] ? 0 : move;
+	}
+	if (key == GLUT_KEY_PAGE_UP && camZ > -limit) {
+		dirZ -= keys[Key::ALT] ? 2 * move : move;
+		camZ -= keys[Key::ALT] ? 0 : move;
+	}
+	if (key == GLUT_KEY_PAGE_DOWN && camZ < limit) {
+		dirZ += keys[Key::ALT] ? 2 * move : move;
+		camZ += keys[Key::ALT] ? 0 : move;
+	}
 }
 
 void processMenu(int option) {
@@ -413,10 +479,14 @@ int main(int argc, char** argv) {
 	glutCreateWindow("Light");
 	glewInit();										// Initialize and load required OpenGL components
 	init();
+
 	mymenu();
 	glutDisplayFunc(display);						// register redraw function
 	glutIdleFunc(display);
+
 	glutSpecialFunc(speckey);
+	glutSpecialUpFunc(speckeyup);
+
 	glutMainLoop();									// go into a permenant loop
 
 	return 0;
