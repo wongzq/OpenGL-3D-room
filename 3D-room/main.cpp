@@ -57,6 +57,10 @@ void drawGround(void);
 void drawWall(float, float, float);
 void drawCupboard(float, float, float, float);
 void drawCupboardDoor(float, float, float, float);
+void drawBook(float, float, float, glm::vec3);
+void drawLamp(float, float, float);
+void drawLaptop(float, float, float);
+void drawChair(float, float, float);
 void drawTableLeg(float, float, float);
 void drawTable(float, float, float);
 
@@ -431,6 +435,33 @@ void drawBook(float x, float y, float z, glm::vec3 color) {
 	glutSolidCube(1.0);
 }
 
+// draw lamp
+void drawLamp(float x, float y, float z) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	glm::vec3 lampColor = glm::vec3(1, 1, 1);
+	glm::vec3 lampStandColor = glm::vec3(0.3, 0.3, 0.3);
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y, z));
+	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(lampStandColor));
+	glutSolidCone(25, 35, 20, 20);
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y + 40, z));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(lampColor));
+	glutSolidSphere(25, 20, 20);
+}
+
+// draw laptop
+
+// draw chair
+
 // draw table - leg
 void drawTableLeg(float x, float y, float z) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
@@ -486,9 +517,8 @@ void drawTable(float x, float y, float z) {
 	drawBook(x - 125.0f, y + 210.0f, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.0, 0.5));
 	drawBook(x - 115.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.5));
 
-	// table cylinder light
-
-	// table sphere lamp
+	// table lamp
+	drawLamp(x + 150.0f, y + 210.0f, z + depth / 5.0f + 15.0f);
 
 	// table computer
 }
@@ -632,7 +662,7 @@ int main(int argc, char** argv) {
 																//use RGB Color, double buffering
 	glutInitWindowSize(600, 600);					// set window size
 	glutInitWindowPosition(50, 50);					// set window position on screen
-	glutCreateWindow("Light");
+	glutCreateWindow("3D Room");
 	glewInit();										// Initialize and load required OpenGL components
 	init();
 
