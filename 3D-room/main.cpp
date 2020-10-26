@@ -31,8 +31,8 @@ glm::mat4 proj;		// projection matrix - camera settings
 
 // Camera position
 GLfloat camX = 0.0;
-GLfloat camY = 100.0;
-GLfloat camZ = 2500.0;
+GLfloat camY = 350.0;
+GLfloat camZ = 2000.0;
 // Camera facing direction
 GLfloat dirX = 0.0;
 GLfloat dirY = 0.0;
@@ -55,8 +55,11 @@ GLuint loadShaders(const std::string, const std::string);
 void init(void);
 void drawGround(void);
 void drawWall(float, float, float);
-void drawCupboard(float, float, float);
+void drawCupboard(float, float, float, float);
 void drawCupboardDoor(float, float, float, float);
+void drawTableLeg(float, float, float);
+void drawTable(float, float, float);
+
 void display(void);
 void speckeyup(int, int, int);
 void speckey(int, int, int);
@@ -236,9 +239,9 @@ void drawWall(float x, float z, float yRotate) {
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
 
-	double width = 1000.0;
-	double height = 500.0;
-	double depth = 10.0;
+	float width = 1000.0;
+	float height = 500.0;
+	float depth = 10.0;
 
 	glm::vec3 color = glm::vec3(1.0, 0.8, 1.0);
 
@@ -257,7 +260,7 @@ void drawWall(float x, float z, float yRotate) {
 }
 
 // draw cupboard
-void drawCupboard(float x, float y, float z) {
+void drawCupboard(float x, float y, float z, float yRotate) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
@@ -277,14 +280,14 @@ void drawCupboard(float x, float y, float z) {
 	// left board
 	glUniform1i(objLoc, object);
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(finalX, finalY, finalZ));
-	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
 	model = glm::scale(model, glm::vec3(width, height, depth));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
 	glutSolidCube(1.0);
 
-	drawCupboardDoor(finalX + depth / 2.0f, y, finalZ + width / 4.0f, 90.0f);
-	drawCupboardDoor(finalX + depth / 2.0f, y, finalZ - width / 4.0f, 90.0f);
+	drawCupboardDoor(finalX + depth / 2.0f, y, finalZ + width / 4.0f, yRotate);
+	drawCupboardDoor(finalX + depth / 2.0f, y, finalZ - width / 4.0f, yRotate);
 }
 
 void drawCupboardDoor(float x, float y, float z, float yRotate) {
@@ -292,9 +295,9 @@ void drawCupboardDoor(float x, float y, float z, float yRotate) {
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
 
-	double width = 125;
-	double height = 450;
-	double depth = 5;
+	float width = 125;
+	float height = 450;
+	float depth = 5;
 
 	glm::vec3 brownColor = glm::vec3(0.50, 0.36, 0.22);
 
@@ -315,10 +318,10 @@ void drawBed(float x, float y, float z) {
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
 	unsigned int modelLoc = glGetUniformLocation(program, "model");
 
-	double width = 250;
-	double height = 100;
-	double depth = 500;
-	double pillarRadius = 15;
+	float width = 250;
+	float height = 100;
+	float depth = 500;
+	float pillarRadius = 15;
 
 	glm::vec3 whiteColor = glm::vec3(1.0, 1.0, 1.0);
 	glm::vec3 blanketColor = glm::vec3(0.9, 0.9, 0.9);
@@ -336,9 +339,9 @@ void drawBed(float x, float y, float z) {
 	glutSolidCube(1.0);
 
 	// bed board
-	double width2 = width;
-	double height2 = height * 1.8;
-	double depth2 = 20;
+	float width2 = width;
+	float height2 = height * 1.8f;
+	float depth2 = 20.0f;
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius, y + height2 / 2.0, z - depth / 2.0));
 	model = glm::scale(model, glm::vec3(width2, height2, depth2));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -365,9 +368,9 @@ void drawBed(float x, float y, float z) {
 	glutSolidCylinder(20, 150, 20, 20);
 
 	// bed blanket
-	double width3 = width + 10;
-	double height3 = height + 10;
-	double depth3 = depth * 0.7;
+	float width3 = width + 10;
+	float height3 = height + 10;
+	float depth3 = depth * 0.7f;
 	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius, y + height3 / 2.0, z + depth * 0.15 + 10));
 	model = glm::scale(model, glm::vec3(width3, height3, depth3));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
@@ -403,6 +406,94 @@ void drawBed(float x, float y, float z) {
 	glutSolidCylinder(pillarRadius, height * 1.25, 50, 20);
 }
 
+// draw book
+void drawBook(float x, float y, float z, glm::vec3 color) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	float width = 10;
+	float height = 50;
+	float depth = 30;
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x + width / 2, y + height / 2.0, z + depth / 2));
+	model = glm::scale(model, glm::vec3(width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(color));
+	glutSolidCube(1.0);
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x + width / 2, y + height / 2, z - 1 + depth / 2));
+	model = glm::scale(model, glm::vec3(width - 2, height + 0.2, depth - 2));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1, 1, 1)));
+	glutSolidCube(1.0);
+}
+
+// draw table - leg
+void drawTableLeg(float x, float y, float z) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	float width = 20.0;
+	float height = 200.0;
+	float depth = 20.0;
+
+	glm::vec3 brownColor = glm::vec3(0.6, 0.46, 0.32);
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y + height / 2.0, z));
+	model = glm::scale(model, glm::vec3(width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
+	glutSolidCube(1.0);
+}
+
+// draw table - board
+void drawTable(float x, float y, float z) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	float width = 400.0;
+	float height = 20.0;
+	float depth = 200.0;
+
+	glm::vec3 brownColor = glm::vec3(0.6, 0.46, 0.32);
+
+	// table
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x, y + 200, z + depth / 2.0));
+	model = glm::scale(model, glm::vec3(width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(brownColor));
+	glutSolidCube(1.0);
+
+	// table legs
+	drawTableLeg(x - width / 2 + 30, y, z + 30);
+	drawTableLeg(x + width / 2 - 20, y, z + 30);
+	drawTableLeg(x - width / 2 + 30, y, z + depth - 30);
+	drawTableLeg(x + width / 2 - 30, y, z + depth - 30);
+
+	// items on table
+	// table books
+	drawBook(x - 175.0f, y + 210.0f, z + depth / 5.0f + 7.5f, glm::vec3(0.5, 0.0, 0.0));
+	drawBook(x - 165.0f, y + 210.0f, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.5, 0.0));
+	drawBook(x - 155.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.0));
+	drawBook(x - 140.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.0, 0.5));
+	drawBook(x - 125.0f, y + 210.0f, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.0, 0.5));
+	drawBook(x - 115.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.5));
+
+	// table cylinder light
+
+	// table sphere lamp
+
+	// table computer
+}
+
+// main program functions
 void display(void) {
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
@@ -425,9 +516,12 @@ void display(void) {
 	drawWall(+500, 500, 90.0f);	// right wall
 	drawWall(0, 0, 0);			// back wall
 
-	drawCupboard(-500, 0, 500);
+	drawCupboard(-500, 0, 600, 90);
+	drawCupboard(-500, 0, 200, 90);
 
 	drawBed(500, 0, 500);
+
+	drawTable(0, 0, 0);
 
 	glutSwapBuffers();
 }
