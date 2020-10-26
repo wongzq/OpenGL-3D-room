@@ -2,6 +2,7 @@
 .vs/
 bin/
 x64/
+Debug/
 
 # Prerequisites
 *.d
