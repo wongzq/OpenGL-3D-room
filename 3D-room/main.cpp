@@ -71,13 +71,15 @@ GLfloat dirY = 0.0;
 GLfloat dirZ = 0.0;
 
 // Point Light Source
-glm::vec3 lightPos = { 0, 250, 1000 };	// Light position in world coordinate
-glm::vec3 lightColor = { 0.5, 0.5, 0.5 };	// white light
+glm::vec3 lightPos1 = { -400, 600, 800 };	// Light position in world coordinate
+glm::vec3 lightColor1 = { 0.5, 0.3, 0.3 };	// white light
+glm::vec3 lightPos2 = { +400, 600, 800 };	// Light position in world coordinate
+glm::vec3 lightColor2 = { 0.3, 0.5, 0.3 };	// white light
 glm::vec3 ambient = { 0.3, 0.3, 0.3 };	// fixed ambient light
 
 enum Object { NONE, WALL, ITEM };
 int object;
-int choice = 4;
+int choice = 0;
 
 enum Key { ALT, UP, DOWN, LEFT, RIGHT, PG_UP, PG_DN, KEYS_LENGTH };
 bool keys[KEYS_LENGTH] = { false };
@@ -85,9 +87,6 @@ bool keys[KEYS_LENGTH] = { false };
 // function prototype
 GLuint loadShaders(const std::string, const std::string);
 void init(void);
-void drawGround(void);
-void drawCeiling(void);
-void drawWall(float, float, float);
 void drawCupboard(float, float, float, float);
 void drawCupboardDoor(float, float, float, float);
 void drawBook(float, float, float, glm::vec3);
@@ -97,6 +96,7 @@ void drawTableLeg(float, float, float);
 void drawTable(float, float, float);
 
 void display(void);
+void animate(void);
 void speckeyup(int, int, int);
 void speckey(int, int, int);
 void processMenu(int);
@@ -211,6 +211,7 @@ void init(void) {
 	glGenVertexArrays(5, VAO);
 	glGenBuffers(5, VBO);
 
+	// ground
 	glBindVertexArray(VAO[0]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(ground), ground, GL_STATIC_DRAW);
@@ -221,6 +222,7 @@ void init(void) {
 	glutSetVertexAttribCoord3(2);
 	glutSetVertexAttribNormal(3);
 
+	// left wall
 	glBindVertexArray(VAO[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(wallLeft), wallLeft, GL_STATIC_DRAW);
@@ -231,6 +233,7 @@ void init(void) {
 	glutSetVertexAttribCoord3(2);
 	glutSetVertexAttribNormal(3);
 	
+	// back wall
 	glBindVertexArray(VAO[2]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(wallBack), wallBack, GL_STATIC_DRAW);
@@ -241,6 +244,7 @@ void init(void) {
 	glutSetVertexAttribCoord3(2);
 	glutSetVertexAttribNormal(3);
 	
+	// right wall
 	glBindVertexArray(VAO[3]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[3]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(wallRight), wallRight, GL_STATIC_DRAW);
@@ -251,6 +255,7 @@ void init(void) {
 	glutSetVertexAttribCoord3(2);
 	glutSetVertexAttribNormal(3);
 	
+	// ceiling
 	glBindVertexArray(VAO[4]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[4]);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(ceiling), ceiling, GL_STATIC_DRAW);
@@ -261,8 +266,8 @@ void init(void) {
 	glutSetVertexAttribCoord3(2);
 	glutSetVertexAttribNormal(3);
 
-	program = loadShaders("vertexShader.glsl", "fragmentShader.glsl");
 	// Activate the shader program
+	program = loadShaders("vertexShader.glsl", "fragmentShader.glsl");
 	glUseProgram(program);
 
 	glEnable(GL_DEPTH_TEST);
@@ -274,12 +279,20 @@ void init(void) {
 	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(proj));
 
 	// Pass light position vector to fragment shader for light calculation
-	unsigned int lightPosLoc = glGetUniformLocation(program, "lightPos");
-	glUniform3fv(lightPosLoc, 1, glm::value_ptr(lightPos));
+	unsigned int lightPosLoc1 = glGetUniformLocation(program, "lightPos1");
+	glUniform3fv(lightPosLoc1, 1, glm::value_ptr(lightPos1));
 
 	// Pass light color to fragment shader for light calculation
-	unsigned int lightColorLoc = glGetUniformLocation(program, "lightColor");
-	glUniform3fv(lightColorLoc, 1, glm::value_ptr(lightColor));
+	unsigned int lightColorLoc1 = glGetUniformLocation(program, "lightColor1");
+	glUniform3fv(lightColorLoc1, 1, glm::value_ptr(lightColor1));
+
+	// Pass light position vector to fragment shader for light calculation
+	unsigned int lightPosLoc2 = glGetUniformLocation(program, "lightPos2");
+	glUniform3fv(lightPosLoc2, 1, glm::value_ptr(lightPos2));
+
+	// Pass light color to fragment shader for light calculation
+	unsigned int lightColorLoc2 = glGetUniformLocation(program, "lightColor2");
+	glUniform3fv(lightColorLoc2, 1, glm::value_ptr(lightColor2));
 
 	// Pass ambient light value to fragment shader for light calculation
 	unsigned int ambientLoc = glGetUniformLocation(program, "ambient");
@@ -287,24 +300,6 @@ void init(void) {
 }
 
 // draw room - ground, walls, ceiling
-void drawGround(void) {
-	// Set buffer to use to draw the floor
-	unsigned int objLoc = glGetUniformLocation(program, "obj");
-
-	object = Object::WALL;
-
-	glUniform1i(objLoc, object);
-	glBindVertexArray(VAO[0]);
-	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
-
-	// Set drawing color
-	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.7, 0.7, 0.7)));
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-	glDrawArrays(GL_QUADS, 0, 4);
-}
-
 void drawWalls(void) {
 	// Set buffer to use to draw the floor
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
@@ -312,39 +307,33 @@ void drawWalls(void) {
 	object = Object::WALL;
 
 	glUniform1i(objLoc, object);
+	glBindVertexArray(VAO[0]);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO[0]);
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.2, 0.2, 0.2)));
+	glDrawArrays(GL_QUADS, 0, 4);
+	
+	glUniform1i(objLoc, object);
 	glBindVertexArray(VAO[1]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[1]);
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1.0, 0.8, 1.0)));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 	glDrawArrays(GL_QUADS, 0, 4);
 
 	glUniform1i(objLoc, object);
 	glBindVertexArray(VAO[2]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[2]);
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1.0, 0.8, 1.0)));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 	glDrawArrays(GL_QUADS, 0, 4);
 
 	glUniform1i(objLoc, object);
 	glBindVertexArray(VAO[3]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[3]);
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1.0, 0.8, 1.0)));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 	glDrawArrays(GL_QUADS, 0, 4);
-}
-
-void drawCeiling(void) {
-	// Set buffer to use to draw the floor
-	unsigned int objLoc = glGetUniformLocation(program, "obj");
-
-	object = Object::WALL;
 
 	glUniform1i(objLoc, object);
 	glBindVertexArray(VAO[4]);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO[4]);
-
-	// Set drawing color
-	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
-	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(1.0, 0.8, 1.0)));
-
-	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(glm::vec3(0.5, 0.5, 0.5)));
 	glDrawArrays(GL_QUADS, 0, 4);
 }
 
@@ -495,7 +484,7 @@ void drawBed(float x, float y, float z) {
 	glutSolidCylinder(pillarRadius, height * 1.25, 50, 20);
 }
 
-// draw book
+// draw table and items
 void drawBook(float x, float y, float z, glm::vec3 color) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
@@ -520,7 +509,6 @@ void drawBook(float x, float y, float z, glm::vec3 color) {
 	glutSolidCube(1.0);
 }
 
-// draw lamp
 void drawLamp(float x, float y, float z) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
@@ -543,7 +531,6 @@ void drawLamp(float x, float y, float z) {
 	glutSolidSphere(25, 20, 20);
 }
 
-// draw laptop
 void drawLaptop(float x, float y, float z) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
@@ -578,9 +565,6 @@ void drawLaptop(float x, float y, float z) {
 	glutSolidCube(1.0);
 }
 
-// draw chair
-
-// draw table - leg
 void drawTableLeg(float x, float y, float z) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
@@ -600,7 +584,6 @@ void drawTableLeg(float x, float y, float z) {
 	glutSolidCube(1.0);
 }
 
-// draw table - board
 void drawTable(float x, float y, float z) {
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
 	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
@@ -660,11 +643,7 @@ void display(void) {
 	unsigned int viewPosLoc = glGetUniformLocation(program, "viewPos");
 	glUniform3fv(viewPosLoc, 1, glm::value_ptr(glm::vec3(camX, camY, camZ)));
 
-	drawGround();
-	drawCeiling();
-	//drawWall(-500, 500, 90.0f);	// left wall
-	//drawWall(+500, 500, 90.0f);	// right wall
-	//drawWall(0, 0, 0);			// back wall
+	// draw floor, walls, ceiling
 	drawWalls();
 
 	drawCupboard(-500, 0, 600, 90);
@@ -675,6 +654,14 @@ void display(void) {
 	drawTable(0, 0, 0);
 
 	glutSwapBuffers();
+	
+}
+
+void animate(int _) {
+	choice = choice == 0 || choice == 1 ? 2 : 1;
+
+	glFlush();
+	glutTimerFunc(250, animate, 0);
 }
 
 void speckeyup(int key, int mouseX, int mouseY) {
@@ -767,12 +754,9 @@ void processMenu(int option) {
 void mymenu(void) {
 	int sel;
 	sel = glutCreateMenu(processMenu);
-	glutAddMenuEntry("No Light Effect", 0);
-	glutAddMenuEntry("Ambient Light Only", 1);
-	glutAddMenuEntry("Diffuse Light Only", 2);
-	glutAddMenuEntry("Specular Light Only", 3);
-	glutAddMenuEntry("Ambient + Diffuse Lighting", 4);
-	glutAddMenuEntry("Ambient + Diffuse + Specular Lighting", 5);
+	glutAddMenuEntry("Both lights", 0);
+	glutAddMenuEntry("Only left light", 1);
+	glutAddMenuEntry("Only right light", 2);
 
 	glutAttachMenu(GLUT_RIGHT_BUTTON);
 }
@@ -790,6 +774,7 @@ int main(int argc, char** argv) {
 	mymenu();
 	glutDisplayFunc(display);						// register redraw function
 	glutIdleFunc(display);
+	glutTimerFunc(250, animate, 0);
 
 	glutSpecialFunc(speckey);
 	glutSpecialUpFunc(speckeyup);

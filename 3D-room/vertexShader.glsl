@@ -29,7 +29,4 @@ void main()
 		vNormal = vec3 ( model * vec4(bNormal, 0.0));
 		vPos = vec3 (model * vec4(bPos, 1.0));
 	}
-
- 	
-
 }
