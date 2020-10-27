@@ -286,7 +286,7 @@ void init(void) {
 	glUniform3fv(ambientLoc, 1, glm::value_ptr(ambient));
 }
 
-// draw room - ground, walls, ceiling
+// draw room - ground
 void drawGround(void) {
 	// Set buffer to use to draw the floor
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
@@ -330,6 +330,7 @@ void drawWalls(void) {
 	glDrawArrays(GL_QUADS, 0, 4);
 }
 
+// draw room - ceiling
 void drawCeiling(void) {
 	// Set buffer to use to draw the floor
 	unsigned int objLoc = glGetUniformLocation(program, "obj");
@@ -346,6 +347,32 @@ void drawCeiling(void) {
 
 	//glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	glDrawArrays(GL_QUADS, 0, 4);
+}
+
+// draw room - wall
+void drawWall(float x, float z, float yRotate) {
+	unsigned int objLoc = glGetUniformLocation(program, "obj");
+	unsigned int vColorLoc = glGetUniformLocation(program, "vColor");
+	unsigned int modelLoc = glGetUniformLocation(program, "model");
+
+	float width = 1000.0;
+	float height = 750.0;
+	float depth = 10.0;
+
+	glm::vec3 color = glm::vec3(1.0, 0.8, 1.0);
+
+	object = Object::ITEM;
+
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(
+		x + (x == 0 ? 0 : x > 0 ? depth / 2 : -depth / 2),
+		height / 2.0,
+		z - depth / 2.0));
+	model = glm::rotate(model, glm::radians(yRotate), glm::vec3(0.0, 1.0, 0.0));
+	model = glm::scale(model, glm::vec3(x == 0 ? width + 2 * depth : width, height, depth));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(color));
+	glutSolidCube(1.0);
 }
 
 // draw cupboard
