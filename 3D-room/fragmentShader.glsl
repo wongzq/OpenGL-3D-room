@@ -29,11 +29,11 @@ void main()
 	vec3 specular1 = pow(max(dot(viewDir, reflectDir1), 0.0), 20) * lightColor1;
 	vec3 specular2 = pow(max(dot(viewDir, reflectDir2), 0.0), 20) * lightColor2;
 	
-	if (choice == 0)
+	if (choice == 0 || choice == 3)
 		fragColor = vec4 ((ambient + diffuse1 + diffuse2 + specular1 + specular2) * vColor, 1.0);
-	else if (choice == 1)
+	else if (choice == 1 || choice == 4)
 		fragColor = vec4 ((ambient + diffuse1 + specular1) * vColor, 1.0);
-	else if (choice == 2)
+	else if (choice == 2 || choice == 5)
 		fragColor = vec4 ((ambient + diffuse2 + specular2) * vColor, 1.0);
 
 } 

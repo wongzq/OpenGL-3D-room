@@ -96,7 +96,7 @@ void drawTableLeg(float, float, float);
 void drawTable(float, float, float);
 
 void display(void);
-void animate(int);
+void animate(void);
 void speckeyup(int, int, int);
 void speckey(int, int, int);
 void processMenu(int);
