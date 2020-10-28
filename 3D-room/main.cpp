@@ -703,7 +703,7 @@ void display(void) {
 		drawText(50, 240, (char*)"ALT + Arrow Key : Tilt camera");
 		drawText(50, 220, (char*)"PG UP / PG DN   : Zoom camera");
 
-		drawText(50, 180, (char*)"Fn + F2         : Disco mode");
+		drawText(50, 180, (char*)"Fn + F2         : Animated mode");
 
 		drawText(50, 140, (char*)"   W            : Reset camera");
 		drawText(50, 120, (char*)"A  S  D         : Left, both, right lights");
