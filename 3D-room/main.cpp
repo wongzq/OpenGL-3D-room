@@ -85,6 +85,8 @@ int choice = 0;
 enum Key { ALT, UP, DOWN, LEFT, RIGHT, PG_UP, PG_DN, KEYS_LENGTH };
 bool keys[KEYS_LENGTH] = { false };
 
+bool showMenu = true;
+
 // animation objects's
 GLfloat cupboard1Y = 0.0f;
 GLfloat cupboard2Y = 0.0f;
@@ -106,6 +108,7 @@ GLfloat book6Y = 0.0f;
 
 GLfloat laptopX = 0.0f;
 GLfloat lampY = 0.0f;
+GLfloat teapotRotate = 0.0f;
 
 // function prototype
 GLuint loadShaders(const std::string, const std::string);
@@ -123,8 +126,6 @@ void display(void);
 void animate(int);
 void speckeyup(int, int, int);
 void speckey(int, int, int);
-void processMenu(int);
-void mymenu(void);
 int main(int, char**);
 
 // function to load shaders
@@ -618,6 +619,7 @@ void drawTable(float x, float y, float z) {
 	float depth = 200.0;
 
 	glm::vec3 brownColor = glm::vec3(0.6, 0.46, 0.32);
+	glm::vec3 teapotColor = glm::vec3(1.0, 1.0, 1.0);
 
 	// table
 	glUniform1i(objLoc, object);
@@ -647,6 +649,14 @@ void drawTable(float x, float y, float z) {
 
 	// table computer
 	drawLaptop(x + laptopX, y + 210.0f, z + depth / 5.0f + 50.0f);
+
+	// teapot
+	glUniform1i(objLoc, object);
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - 50.0f, y + 220.0f, z + depth / 2.0f + 15.0f));
+	model = glm::rotate(model, glm::radians(teapotRotate - 135.0f), glm::vec3(0.0, 1.0, 0.0));
+	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
+	glUniform3fv(vColorLoc, 1, glm::value_ptr(teapotColor));
+	glutSolidTeapot(20.0f);
 }
 
 void drawText(int x, int y, char* string) {
@@ -688,11 +698,18 @@ void display(void) {
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	gluOrtho2D(0.0, 800.0, 0.0, 800.0);
-	drawText(50, 150, (char*)"Right click     : Show menu");
-	drawText(50, 125, (char*)"Fn + F2         : Disco mode");
-	drawText(50, 100, (char*)"Arrow Keys      : Move camera");
-	drawText(50, 75, (char*)"ALT + Arrow Key : Tilt camera");
-	drawText(50, 50, (char*)"PG UP / PG DN   : Move forward / backward");
+	if (showMenu) {
+		drawText(50, 260, (char*)"      Arrow Key : Move camera");
+		drawText(50, 240, (char*)"ALT + Arrow Key : Tilt camera");
+		drawText(50, 220, (char*)"PG UP / PG DN   : Zoom camera");
+
+		drawText(50, 180, (char*)"Fn + F2         : Disco mode");
+
+		drawText(50, 140, (char*)"   W            : Reset camera");
+		drawText(50, 120, (char*)"A  S  D         : Left, both, right lights");
+		drawText(50, 100, (char*)"   X            : Exit program");
+	}
+	drawText(50, 50, (char*)" SPACE          : Toggle Help Menu");
 	glUseProgram(program);
 
 	glutSwapBuffers();
@@ -711,6 +728,9 @@ void animate(int _) {
 		: 3;
 
 	if (choice == 3 || choice == 4 || choice == 5) {
+		teapotRotate += 15.0f;
+		teapotRotate = teapotRotate >= 360.0f ? 0.0f : teapotRotate;
+
 		if (seconds % 2 == 0) {
 			cupboard1Y -= 10.0f;
 			cupboard2Y += 10.0f;
@@ -780,6 +800,8 @@ void animate(int _) {
 
 		laptopX = 0.0f;
 		lampY = 0.0f;
+
+		teapotRotate = 0.0f;
 	}
 
 	glFlush();
@@ -875,19 +897,42 @@ void speckey(int key, int mouseX, int mouseY) {
 	}
 }
 
-void processMenu(int option) {
-	choice = option;
-}
+void myKey(unsigned char key, int mouseX, int mouseY) {
+	switch (key) {
+	case ' ':
+		showMenu = !showMenu;
+		break;
 
-void mymenu(void) {
-	int sel;
-	sel = glutCreateMenu(processMenu);
-	glutAddMenuEntry("Both lights", 0);
-	glutAddMenuEntry("Only left light", 1);
-	glutAddMenuEntry("Only right light", 2);
-	glutAddMenuEntry("Disco mode", 3);
+	case 'A':
+	case 'a':
+		choice = 1;
+		break;
 
-	glutAttachMenu(GLUT_RIGHT_BUTTON);
+	case 'S':
+	case 's':
+		choice = 0;
+		break;
+
+	case 'D':
+	case 'd':
+		choice = 2;
+		break;
+
+	case 'W':
+	case 'w':
+		camX = 0.0;
+		camY = 500.0;
+		camZ = 2000.0;
+		dirX = 0.0;
+		dirY = 250.0;
+		dirZ = 0.0;
+		break;
+
+	case 'X':
+	case 'x':
+		exit(0);
+		break;
+	}
 }
 
 int main(int argc, char** argv) {
@@ -900,13 +945,13 @@ int main(int argc, char** argv) {
 	glewInit();										// Initialize and load required OpenGL components
 	init();
 
-	mymenu();
 	glutDisplayFunc(display);						// register redraw function
 	glutIdleFunc(display);
 	glutTimerFunc(100, animate, 0);
 
 	glutSpecialFunc(speckey);
 	glutSpecialUpFunc(speckeyup);
+	glutKeyboardFunc(myKey);
 
 	glutMainLoop();									// go into a permenant loop
 
