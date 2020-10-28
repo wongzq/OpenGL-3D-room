@@ -8,6 +8,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <time.h>
 
 #pragma warning(disable:4996)
 using namespace std;
@@ -63,11 +64,11 @@ glm::mat4 proj;		// projection matrix - camera settings
 
 // Camera position
 GLfloat camX = 0.0;
-GLfloat camY = 350.0;
+GLfloat camY = 500.0;
 GLfloat camZ = 2000.0;
 // Camera facing direction
 GLfloat dirX = 0.0;
-GLfloat dirY = 0.0;
+GLfloat dirY = 250.0;
 GLfloat dirZ = 0.0;
 
 // Point Light Source
@@ -83,6 +84,28 @@ int choice = 0;
 
 enum Key { ALT, UP, DOWN, LEFT, RIGHT, PG_UP, PG_DN, KEYS_LENGTH };
 bool keys[KEYS_LENGTH] = { false };
+
+// animation objects's
+GLfloat cupboard1Y = 0.0f;
+GLfloat cupboard2Y = 0.0f;
+
+GLfloat bedY = 0.0f;
+GLfloat pillowX = 0.0f;
+GLfloat bedPillar1Y = 0.0f;
+GLfloat bedPillar2Y = 0.0f;
+GLfloat bedPillar3Y = 0.0f;
+GLfloat bedPillar4Y = 0.0f;
+
+GLfloat tableZ = 0.0f;
+GLfloat book1Y = 0.0f;
+GLfloat book2Y = 0.0f;
+GLfloat book3Y = 0.0f;
+GLfloat book4Y = 0.0f;
+GLfloat book5Y = 0.0f;
+GLfloat book6Y = 0.0f;
+
+GLfloat laptopX = 0.0f;
+GLfloat lampY = 0.0f;
 
 // function prototype
 GLuint loadShaders(const std::string, const std::string);
@@ -352,7 +375,7 @@ void drawCupboard(float x, float y, float z, float yRotate) {
 	object = Object::ITEM;
 
 	float finalX = x + depth / 2.0f;
-	float finalY = height / 2.0f;
+	float finalY = y + height / 2.0f;
 	float finalZ = z;
 
 	// left board
@@ -427,19 +450,19 @@ void drawBed(float x, float y, float z) {
 	glutSolidCube(1.0);
 
 	// pillow - left ball
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius - 75, y + height + 15, z - depth / 2.0 + 50));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(pillowX + x - width / 2 - pillarRadius - 75, y + height + 15, z - depth / 2.0 + 50));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(whiteColor));
 	glutSolidSphere(20, 20, 20);
 
 	// pillow - right ball
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius + 75, y + height + 15, z - depth / 2.0 + 50));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(pillowX + x - width / 2 - pillarRadius + 75, y + height + 15, z - depth / 2.0 + 50));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(whiteColor));
 	glutSolidSphere(20, 20, 20);
 
 	// pillow - middle cylinder
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width / 2 - pillarRadius - 75, y + height + 15, z - depth / 2.0 + 50));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(pillowX + x - width / 2 - pillarRadius - 75, y + height + 15, z - depth / 2.0 + 50));
 	model = glm::rotate(model, glm::radians(90.0f), glm::vec3(0.0, 1.0, 0.0));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(whiteColor));
@@ -456,28 +479,28 @@ void drawBed(float x, float y, float z) {
 	glutSolidCube(1.0);
 
 	// bed pillar top left
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width - pillarRadius, y, z - depth / 2.0));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width - pillarRadius, y + bedPillar1Y, z - depth / 2.0));
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
 	glutSolidCylinder(15.0, height * 2.0, 50, 20);
 
 	// bed pillar top right
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - pillarRadius, y, z - depth / 2.0));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - pillarRadius, y + bedPillar2Y, z - depth / 2.0));
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
 	glutSolidCylinder(15.0, height * 2.0, 50, 20);
 
 	// bed pillar bottom left
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width - pillarRadius, y, z + depth / 2.0));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - width - pillarRadius, y + bedPillar3Y, z + depth / 2.0));
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
 	glutSolidCylinder(15.0, height * 1.25, 50, 20);
 
 	// bed pillar bottom right
-	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - pillarRadius, y, z + depth / 2.0));
+	model = glm::translate(glm::mat4(1.0f), glm::vec3(x - pillarRadius, y + bedPillar4Y, z + depth / 2.0));
 	model = glm::rotate(model, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
 	glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 	glUniform3fv(vColorLoc, 1, glm::value_ptr(lightBrownColor));
@@ -611,18 +634,18 @@ void drawTable(float x, float y, float z) {
 
 	// items on table
 	// table books
-	drawBook(x - 175.0f, y + 210.0f, z + depth / 5.0f + 7.5f, glm::vec3(0.5, 0.0, 0.0));
-	drawBook(x - 165.0f, y + 210.0f, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.5, 0.0));
-	drawBook(x - 155.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.0));
-	drawBook(x - 140.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.0, 0.5));
-	drawBook(x - 125.0f, y + 210.0f, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.0, 0.5));
-	drawBook(x - 115.0f, y + 210.0f, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.5));
+	drawBook(x - 175.0f, y + 210.0f + book1Y, z + depth / 5.0f + 7.5f, glm::vec3(0.5, 0.0, 0.0));
+	drawBook(x - 165.0f, y + 210.0f + book2Y, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.5, 0.0));
+	drawBook(x - 155.0f, y + 210.0f + book3Y, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.0));
+	drawBook(x - 140.0f, y + 210.0f + book4Y, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.0, 0.5));
+	drawBook(x - 125.0f, y + 210.0f + book5Y, z + depth / 5.0f + 0.0f, glm::vec3(0.5, 0.0, 0.5));
+	drawBook(x - 115.0f, y + 210.0f + book6Y, z + depth / 5.0f + 5.0f, glm::vec3(0.0, 0.5, 0.5));
 
 	// table lamp
-	drawLamp(x + 150.0f, y + 210.0f, z + depth / 5.0f + 15.0f);
+	drawLamp(x + 150.0f, y + 210.0f + lampY, z + depth / 5.0f + 15.0f);
 
 	// table computer
-	drawLaptop(x, y + 210.0f, z + depth / 5.0f + 50.0f);
+	drawLaptop(x + laptopX, y + 210.0f, z + depth / 5.0f + 50.0f);
 }
 
 // main program functions
@@ -646,25 +669,102 @@ void display(void) {
 	// draw floor, walls, ceiling
 	drawWalls();
 
-	drawCupboard(-499, 0, 600, 90);
-	drawCupboard(-499, 0, 200, 90);
+	drawCupboard(-499, cupboard1Y, 600, 90);
+	drawCupboard(-499, cupboard2Y, 200, 90);
 
-	drawBed(500, 0, 500);
+	drawBed(500, bedY, 500);
 
-	drawTable(0, 0, 0);
+	drawTable(0, 0, tableZ);
 
 	glutSwapBuffers();
 }
 
 void animate(int _) {
-	choice = choice == 3 || choice == 4
-				? 5
-				: choice == 5
-					? 4
-					: choice;
+	time_t seconds;
+	seconds = time(NULL);
+
+	choice = choice < 3
+		? choice
+		: seconds % 2 == 0
+		? 4
+		: seconds % 2 == 1
+		? 5
+		: 3;
+
+	if (choice == 3 || choice == 4 || choice == 5) {
+		if (seconds % 2 == 0) {
+			cupboard1Y -= 10.0f;
+			cupboard2Y += 10.0f;
+
+			bedY += 5.0f;
+			pillowX -= 5.0f;
+			bedPillar1Y -= 10.0f;
+			bedPillar2Y -= 15.0f;
+			bedPillar3Y -= 10.0f;
+			bedPillar4Y -= 15.0f;
+
+			tableZ += 50.0f;
+
+			book1Y += 5.0f;
+			book2Y += 2.0f;
+			book3Y += 4.0f;
+			book4Y += 1.0f;
+			book5Y += 3.0f;
+			book6Y += 2.0f;
+
+			laptopX -= 5.0f;
+			lampY += 5.0f;
+		}
+		else if (seconds % 2 == 1) {
+			cupboard1Y += 10.0f;
+			cupboard2Y -= 10.0f;
+
+			bedY -= 5.0f;
+			pillowX += 5.0f;
+			bedPillar1Y += 10.0f;
+			bedPillar2Y += 15.0f;
+			bedPillar3Y += 10.0f;
+			bedPillar4Y += 15.0f;
+
+			tableZ -= 50.0f;
+			tableZ = tableZ < 0 ? 0 : tableZ;
+
+			book1Y -= 5.0f;
+			book2Y -= 2.0f;
+			book3Y -= 4.0f;
+			book4Y -= 1.0f;
+			book5Y -= 3.0f;
+			book6Y -= 2.0f;
+
+			laptopX += 5.0f;
+			lampY -= 5.0f;
+		}
+	}
+	else {
+		cupboard1Y = 5.0f;
+		cupboard2Y = 2.0f;
+
+		bedY = 0.0f;
+		pillowX = 0.0f;
+		bedPillar1Y = 0.0f;
+		bedPillar2Y = 0.0f;
+		bedPillar3Y = 0.0f;
+		bedPillar4Y = 0.0f;
+
+		tableZ = 0.0f;
+		book1Y = 0.0f;
+		book2Y = 0.0f;
+		book3Y = 0.0f;
+		book4Y = 0.0f;
+		book5Y = 0.0f;
+		book6Y = 0.0f;
+
+		laptopX = 0.0f;
+		lampY = 0.0f;
+	}
 
 	glFlush();
-	glutTimerFunc(250, animate, 0);
+	glutTimerFunc(100, animate, 0);
 }
 
 void speckeyup(int key, int mouseX, int mouseY) {
@@ -696,8 +796,14 @@ void speckeyup(int key, int mouseX, int mouseY) {
 
 void speckey(int key, int mouseX, int mouseY) {
 	switch (key) {
+	case GLUT_KEY_F2:
+		// disco mode
+		choice = choice == 3 || choice == 4 || choice == 5 ? 0 : 3;
+		break;
+
 	case GLUT_KEY_ALT_L:
 	case GLUT_KEY_ALT_R:
+		// toggle tilt with ALT
 		keys[Key::ALT] = true;
 		break;
 	case GLUT_KEY_UP:
@@ -769,8 +875,8 @@ int main(int argc, char** argv) {
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);	// set display mode
 																//use RGB Color, double buffering
-	glutInitWindowSize(600, 600);					// set window size
-	glutInitWindowPosition(50, 50);					// set window position on screen
+	glutInitWindowSize(720, 720);					// set window size
+	glutInitWindowPosition(0, 0);					// set window position on screen
 	glutCreateWindow("3D Room");
 	glewInit();										// Initialize and load required OpenGL components
 	init();
@@ -778,7 +884,7 @@ int main(int argc, char** argv) {
 	mymenu();
 	glutDisplayFunc(display);						// register redraw function
 	glutIdleFunc(display);
-	glutTimerFunc(250, animate, 0);
+	glutTimerFunc(100, animate, 0);
 
 	glutSpecialFunc(speckey);
 	glutSpecialUpFunc(speckeyup);
