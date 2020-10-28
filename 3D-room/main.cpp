@@ -57,7 +57,7 @@ GLfloat ceiling[] = {
 	+500.0, 750.0,    0.0,	0.0, -1.0, 0.0
 };
 
-//predefined matrix type from GLM 
+//predefined matrix type from GLM
 glm::mat4 model;	// model matrix
 glm::mat4 view;		// view matrix
 glm::mat4 proj;		// projection matrix - camera settings
@@ -66,6 +66,7 @@ glm::mat4 proj;		// projection matrix - camera settings
 GLfloat camX = 0.0;
 GLfloat camY = 500.0;
 GLfloat camZ = 2000.0;
+
 // Camera facing direction
 GLfloat dirX = 0.0;
 GLfloat dirY = 250.0;
@@ -87,11 +88,12 @@ bool keys[KEYS_LENGTH] = { false };
 
 bool showMenu = true;
 
-// animation objects's
+// animation objects's variables
 GLfloat cupboard1Y = 0.0f;
 GLfloat cupboard2Y = 0.0f;
 
 GLfloat bedY = 0.0f;
+
 GLfloat pillowX = 0.0f;
 GLfloat bedPillar1Y = 0.0f;
 GLfloat bedPillar2Y = 0.0f;
@@ -99,6 +101,7 @@ GLfloat bedPillar3Y = 0.0f;
 GLfloat bedPillar4Y = 0.0f;
 
 GLfloat tableZ = 0.0f;
+
 GLfloat book1Y = 0.0f;
 GLfloat book2Y = 0.0f;
 GLfloat book3Y = 0.0f;
@@ -128,7 +131,7 @@ void speckeyup(int, int, int);
 void speckey(int, int, int);
 int main(int, char**);
 
-// function to load shaders
+// function implementations
 GLuint loadShaders(const std::string vShaderFile, const std::string fShaderFile) {
 	GLint status;	// to check compile and linking status
 
@@ -659,6 +662,7 @@ void drawTable(float x, float y, float z) {
 	glutSolidTeapot(20.0f);
 }
 
+// draw help
 void drawText(int x, int y, char* string) {
 	glRasterPos2d(x, y);
 	glColor3f(1.0, 1.0, 1.0);
@@ -675,7 +679,7 @@ void display(void) {
 	unsigned int choiceLoc = glGetUniformLocation(program, "choice");
 	glUniform1i(choiceLoc, choice);
 
-	// view matrix - glm::lookAt (camera position, direction, Up vector) 
+	// view matrix - glm::lookAt (camera position, direction, Up vector)
 	view = glm::lookAt(glm::vec3(camX, camY, camZ), glm::vec3(dirX, dirY, dirZ), glm::vec3(0.0, 1.0, 0.0));
 	unsigned int viewLoc = glGetUniformLocation(program, "view");
 	glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
@@ -694,22 +698,23 @@ void display(void) {
 
 	drawTable(0, 0, tableZ);
 
+	// draw help menu
 	glUseProgram(0);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	gluOrtho2D(0.0, 800.0, 0.0, 800.0);
+	gluOrtho2D(0.0, 720.0, 0.0, 720.0);
 	if (showMenu) {
-		drawText(50, 260, (char*)"      Arrow Key : Move camera");
-		drawText(50, 240, (char*)"ALT + Arrow Key : Tilt camera");
-		drawText(50, 220, (char*)"PG UP / PG DN   : Zoom camera");
+		drawText(30, 200, (char*)"      Arrow Key : Move camera");
+		drawText(30, 180, (char*)"ALT + Arrow Key : Tilt camera");
+		drawText(30, 160, (char*)"PG UP / PG DN   : Zoom camera");
 
-		drawText(50, 180, (char*)"Fn + F2         : Animated mode");
+		drawText(30, 130, (char*)"Fn + F2         : Animated mode");
 
-		drawText(50, 140, (char*)"   W            : Reset camera");
-		drawText(50, 120, (char*)"A  S  D         : Left, both, right lights");
-		drawText(50, 100, (char*)"   X            : Exit program");
+		drawText(30, 100, (char*)"   W            : Reset camera");
+		drawText(30, 80, (char*)"A  S  D         : Left, both, right lights");
+		drawText(30, 60, (char*)"   X            : Exit program");
 	}
-	drawText(50, 50, (char*)" SPACE          : Toggle Help Menu");
+	drawText(30, 30, (char*)" SPACE          : Toggle Help Menu");
 	glUseProgram(program);
 
 	glutSwapBuffers();
@@ -838,7 +843,7 @@ void speckeyup(int key, int mouseX, int mouseY) {
 void speckey(int key, int mouseX, int mouseY) {
 	switch (key) {
 	case GLUT_KEY_F2:
-		// disco mode
+		// animated mode, toggle light between left and right
 		choice = choice == 3 || choice == 4 || choice == 5 ? 0 : 3;
 		break;
 
@@ -847,6 +852,7 @@ void speckey(int key, int mouseX, int mouseY) {
 		// toggle tilt with ALT
 		keys[Key::ALT] = true;
 		break;
+
 	case GLUT_KEY_UP:
 		keys[Key::UP] = true;
 		break;
@@ -937,15 +943,15 @@ void myKey(unsigned char key, int mouseX, int mouseY) {
 
 int main(int argc, char** argv) {
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);	// set display mode
-																//use RGB Color, double buffering
-	glutInitWindowSize(720, 720);					// set window size
-	glutInitWindowPosition(0, 0);					// set window position on screen
+	glutInitDisplayMode(GLUT_RGB | GLUT_DOUBLE | GLUT_DEPTH);
+	
+	glutInitWindowSize(720, 720);
+	glutInitWindowPosition(0, 0);
 	glutCreateWindow("3D Room");
-	glewInit();										// Initialize and load required OpenGL components
+	glewInit();
 	init();
 
-	glutDisplayFunc(display);						// register redraw function
+	glutDisplayFunc(display);
 	glutIdleFunc(display);
 	glutTimerFunc(100, animate, 0);
 
@@ -953,7 +959,7 @@ int main(int argc, char** argv) {
 	glutSpecialUpFunc(speckeyup);
 	glutKeyboardFunc(myKey);
 
-	glutMainLoop();									// go into a permenant loop
+	glutMainLoop();
 
 	return 0;
 }
