@@ -646,8 +646,8 @@ void display(void) {
 	// draw floor, walls, ceiling
 	drawWalls();
 
-	drawCupboard(-500, 0, 600, 90);
-	drawCupboard(-500, 0, 200, 90);
+	drawCupboard(-499, 0, 600, 90);
+	drawCupboard(-499, 0, 200, 90);
 
 	drawBed(500, 0, 500);
 
