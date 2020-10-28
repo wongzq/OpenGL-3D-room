@@ -117,6 +117,7 @@ void drawLamp(float, float, float);
 void drawLaptop(float, float, float);
 void drawTableLeg(float, float, float);
 void drawTable(float, float, float);
+void drawText(int, int, char*);
 
 void display(void);
 void animate(int);
@@ -648,8 +649,15 @@ void drawTable(float x, float y, float z) {
 	drawLaptop(x + laptopX, y + 210.0f, z + depth / 5.0f + 50.0f);
 }
 
+void drawText(int x, int y, char* string) {
+	glRasterPos2d(x, y);
+	glColor3f(1.0, 1.0, 1.0);
+	glutBitmapString(GLUT_BITMAP_8_BY_13, (const unsigned char*)string);
+}
+
 // main program functions
 void display(void) {
+	glUseProgram(program);
 	glClear(GL_COLOR_BUFFER_BIT);
 	glClear(GL_DEPTH_BUFFER_BIT);
 
@@ -675,6 +683,17 @@ void display(void) {
 	drawBed(500, bedY, 500);
 
 	drawTable(0, 0, tableZ);
+
+	glUseProgram(0);
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	gluOrtho2D(0.0, 800.0, 0.0, 800.0);
+	drawText(50, 150, (char*)"Right click     : Show menu");
+	drawText(50, 125, (char*)"Fn + F2         : Disco mode");
+	drawText(50, 100, (char*)"Arrow Keys      : Move camera");
+	drawText(50, 75, (char*)"ALT + Arrow Key : Tilt camera");
+	drawText(50, 50, (char*)"PG UP / PG DN   : Move forward / backward");
+	glUseProgram(program);
 
 	glutSwapBuffers();
 }
