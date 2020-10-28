@@ -827,30 +827,30 @@ void speckey(int key, int mouseX, int mouseY) {
 	}
 
 	//Change camera position and make sure camera always "look" to the front
-	GLfloat limit = 5000.0;
+	GLfloat limit = 1000.0;
 	GLfloat move = 20;
 
-	if (key == GLUT_KEY_LEFT && camX > -limit) {
+	if (key == GLUT_KEY_LEFT && dirX > -limit) {
 		dirX -= keys[Key::ALT] ? 2 * move : move;
 		camX -= keys[Key::ALT] ? 0 : move;
 	}
-	if (key == GLUT_KEY_RIGHT && camX < limit) {
+	if (key == GLUT_KEY_RIGHT && dirX < limit) {
 		dirX += keys[Key::ALT] ? 2 * move : move;
 		camX += keys[Key::ALT] ? 0 : move;
 	}
-	if (key == GLUT_KEY_UP && camY < limit) {
+	if (key == GLUT_KEY_UP && dirY < limit) {
 		dirY += keys[Key::ALT] ? 2 * move : move;
 		camY += keys[Key::ALT] ? 0 : move;
 	}
-	if (key == GLUT_KEY_DOWN && camY > -limit) {
+	if (key == GLUT_KEY_DOWN && dirY > -limit) {
 		dirY -= keys[Key::ALT] ? 2 * move : move;
 		camY -= keys[Key::ALT] ? 0 : move;
 	}
-	if (key == GLUT_KEY_PAGE_UP && camZ > -limit) {
+	if (key == GLUT_KEY_PAGE_UP && dirZ > -limit) {
 		dirZ -= keys[Key::ALT] ? 2 * move : move;
 		camZ -= keys[Key::ALT] ? 0 : move;
 	}
-	if (key == GLUT_KEY_PAGE_DOWN && camZ < limit) {
+	if (key == GLUT_KEY_PAGE_DOWN && dirZ < limit) {
 		dirZ += keys[Key::ALT] ? 2 * move : move;
 		camZ += keys[Key::ALT] ? 0 : move;
 	}
